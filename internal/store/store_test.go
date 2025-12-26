@@ -24,9 +24,11 @@ func TestWrite(t *testing.T) {
 	key := "myspecialpicture"
 	s := store.NewStore(opts)
 	data := bytes.NewReader([]byte("hello world"))
-	err := s.Write(key, data)
-	assert.NoError(t, err)
 
+	err := s.Write(key, data)
+
+	assert.NoError(t, err)
+	assert.True(t, s.Has(key))
 	err = s.Delete(key)
 	assert.NoError(t, err)
 
@@ -49,7 +51,6 @@ func TestRead(t *testing.T) {
 	_, err = buf.ReadFrom(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello world", buf.String())
-
 	err = s.Delete(key)
 	assert.NoError(t, err)
 }
