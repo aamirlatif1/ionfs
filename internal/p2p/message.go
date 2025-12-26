@@ -2,8 +2,8 @@ package p2p
 
 import "net"
 
-// Message represents any arbitrary message sent between peers.
-type Message struct {
+// RPC represents any arbitrary message sent between peers.
+type RPC struct {
 	From    net.Addr
 	Payload []byte
 }
