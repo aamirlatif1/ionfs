@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -23,7 +24,7 @@ func CASPathTransformFunc(key string) PathKey {
 	blockSize := 5
 	sliceLen := len(hashStr) / blockSize
 	paths := make([]string, 0, blockSize)
-	for i := 0; i < sliceLen; i++ {
+	for i := range sliceLen {
 		paths = append(paths, hashStr[i*blockSize:(i+1)*blockSize])
 	}
 	return PathKey{
@@ -143,8 +144,5 @@ func (s *Store) Has(key string) bool {
 	pathKey := s.PathTransformFunc(key)
 	fullpathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
 	_, err := os.Stat(fullpathWithRoot)
-	if err != nil && err == fs.ErrNotExist {
-		return false
-	}
-	return true
+	return !errors.Is(err, fs.ErrNotExist)
 }

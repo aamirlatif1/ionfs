@@ -1,37 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/aamirlatif1/ionfs/internal/p2p"
+	"github.com/aamirlatif1/ionfs/internal/store"
 )
 
 func main() {
-
-	tcpOpts := p2p.TCPTransportOpts{
+	tcpTransportOpts := p2p.TCPTransportOpts{
 		ListenAddr:    ":3000",
 		HandshakeFunc: p2p.NOOPHandshake,
 		Decoder:       p2p.DefaultDecoder{},
-		OnPeer: func(peer p2p.Peer) error {
-			fmt.Printf("New peer connected: %+v\n", peer)
-			return nil
-		},
+		// TODO: onPeer func
 	}
-	tr := p2p.NewTCPTransport(tcpOpts)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
+	fileServerOpts := FileServerOpts{
+		ListenAddr:        ":3000",
+		StorageRoot:       "300_network",
+		PathTransformFunc: store.CASPathTransformFunc,
+		Transport:         tcpTransport,
+		BootstrapNodes:    []string{":4000"},
+	}
+
+	s := NewFileServer(fileServerOpts)
 
 	go func() {
-		for rpc := range tr.Consume() {
-			fmt.Printf("Received RPC from %s: %+v\n", rpc.From, rpc)
-		}
+		time.Sleep(time.Second * 3)
+		s.Stop()
 	}()
 
-	if err := tr.ListenAndAccept(); err != nil {
+	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Hello, World!")
-
-	select {}
-
+	// select {}
 }
